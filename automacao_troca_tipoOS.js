@@ -1,13 +1,3 @@
-/**
- * =====================================================================================
- * == SCRIPT DE AUTOMAÇÃO DE CLASSIFICAÇÃO DE O.S. (VERSÃO 12 - FECHAMENTO AUTOMÁTICO) ==
- * =====================================================================================
- *
- * LÓGICA ATUALIZADA:
- * - O script agora fecha automaticamente TODAS as janelas pop-up abertas
- * assim que o limite de 5 janelas é atingido, liberando recursos.
- */
-
 // --- INÍCIO DO GERENCIADOR DE JANELAS ---
 
 const janelasAbertasPeloScript = [];
@@ -27,25 +17,14 @@ function fecharTodasAsJanelas() {
 
 function criarBotaoDeFechamento() {
     if (document.getElementById('botao-fechar-janelas')) return;
-
     const botao = document.createElement('button');
     botao.id = 'botao-fechar-janelas';
     botao.innerHTML = '❌ Fechar Janelas Abertas (0)';
     Object.assign(botao.style, {
-        position: 'fixed',
-        bottom: '20px', 
-        right: '20px',
-        zIndex: '10000',
-        padding: '12px 20px',
-        backgroundColor: '#dc3545',
-        color: 'white',
-        border: 'none',
-        borderRadius: '8px',
-        cursor: 'pointer',
-        fontSize: '16px',
-        boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
+        position: 'fixed', bottom: '20px', right: '20px', zIndex: '10000', padding: '12px 20px',
+        backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '8px',
+        cursor: 'pointer', fontSize: '16px', boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
     });
-
     botao.onclick = fecharTodasAsJanelas;
     document.body.appendChild(botao);
 }
@@ -65,19 +44,14 @@ async function waitForElement(selector, context = document, timeout = 10000) {
     const startTime = Date.now();
     const interval = setInterval(() => {
       const element = context.querySelector(selector);
-      if (element) {
-        clearInterval(interval);
-        resolve(element);
-      } else if (Date.now() - startTime > timeout) {
-        clearInterval(interval);
-        reject(new Error(`Tempo esgotado esperando por: ${selector}`));
-      }
+      if (element) { clearInterval(interval); resolve(element); }
+      else if (Date.now() - startTime > timeout) { clearInterval(interval); reject(new Error(`Tempo esgotado: ${selector}`)); }
     }, 500);
   });
 }
 
 async function processarTodasAsOrdens() {
-  console.log("🚀 INICIANDO AUTOMAÇÃO (V12 - FECHAMENTO AUTOMÁTICO) 🚀");
+  console.log("🚀 INICIANDO AUTOMAÇÃO (VERSÃO FINAL - FOCO PASSIVO) 🚀");
   criarBotaoDeFechamento();
 
   if (typeof $ === 'undefined' || typeof $.fn.modal === 'undefined') {
@@ -115,6 +89,13 @@ async function processarTodasAsOrdens() {
       const windowFeatures = 'width=800,height=600,scrollbars=yes,resizable=yes';
       
       const novaJanela = window.open('', windowName, windowFeatures);
+      
+      // *** TENTATIVA DE FOCO PASSIVO ***
+      // Apenas pedimos para a nova janela perder o foco.
+      if (novaJanela) {
+        novaJanela.blur();
+      }
+      
       janelasAbertasPeloScript.push(novaJanela);
       atualizarContadorDoBotao();
       
@@ -135,7 +116,6 @@ async function processarTodasAsOrdens() {
       console.log('   - Aguardando 2.5 segundos para estabilização...');
       await new Promise(resolve => setTimeout(resolve, 2500));
 
-      // *** MELHORIA: FECHAMENTO AUTOMÁTICO A CADA 5 JANELAS ***
       if (janelasAbertasPeloScript.length >= 5) {
           fecharTodasAsJanelas();
           atualizarContadorDoBotao();
