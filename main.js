@@ -1,3 +1,7 @@
+// Versão 2: Update de perda de foco da nova janela
+
+// Substitui o não classificado das OS da página para Corretiva planejada
+
 // --- INÍCIO DO GERENCIADOR DE JANELAS ---
 
 const janelasAbertasPeloScript = [];
@@ -136,3 +140,4 @@ async function processarTodasAsOrdens() {
 
 // Inicia o processo
 processarTodasAsOrdens();
+
