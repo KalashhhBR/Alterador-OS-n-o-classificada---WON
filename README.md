@@ -14,6 +14,6 @@ Seu processo é simples: **Filtrar > Executar o script > Selecionar o tipo de cl
 
 **- CLPP**:
 
-Essa é a versão mais completa do projeto, permitindo especificar qual a classificação para cada solicitação; por conta disso, o seu processo para execução é mais complexo e exige tratamento da planilha CSV gerada pelo filtro no Won. O processo se torna simples e bem intuitivo após alguns execuções.
+Essa é a versão mais completa do projeto, permitindo especificar a classificação para cada solicitação; por conta disso, o seu processo para execução é mais complexo e exige tratamento da planilha CSV gerada pelo filtro no Won. O processo se torna simples e bem intuitivo após alguns execuções.
 
 Seu processo é: **FIltrar > Baixar CSV > Subir ela no Google Sheets > Tratar a planilha > Adicionar as classificações > Obter link web público > Executar script > Informar link da planilha (web público)**
