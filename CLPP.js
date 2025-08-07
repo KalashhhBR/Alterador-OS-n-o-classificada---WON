@@ -232,8 +232,8 @@
                 // 3.3.5: Gerenciamento Automático de Janelas
                 if (janelasAbertasPeloScript.length >= 5) {
                     fecharTodasAsJanelas();
-                    console.log('   - Pausa adicional de 2 segundos após a limpeza das janelas.');
-                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    console.log('   - Pausa adicional de 1.5 segundos após a limpeza das janelas.');
+                    await new Promise(resolve => setTimeout(resolve, 1500));
                 }
 
             } catch (error) {
