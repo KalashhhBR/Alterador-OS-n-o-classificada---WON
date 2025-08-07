@@ -1,7 +1,11 @@
 /**
  * ========================================================================================
- * == SCRIPT DE AUTOMAÇÃO POR PLANILHA (VERSÃO 2 - CONFIGURÁVEL) ==
+ * == SCRIPT DE AUTOMAÇÃO POR PLANILHA (VERSÃO 2.1 - VERIFICAÇÃO PRECISA) ==
  * ========================================================================================
+ *
+ * LÓGICA CORRIGIDA:
+ * - A verificação prévia agora extrai a classificação exata da página, evitando
+ * falsos positivos com nomes parecidos (ex: "Corretiva" vs "Corretiva Planejada").
  *
  */
 
@@ -91,11 +95,9 @@
             return;
         }
 
-        // Converte as letras das colunas para os índices numéricos que o script usará.
         const indiceIdOS = letraParaIndice(COLUNA_DO_ID);
         const indiceClassificacao = letraParaIndice(COLUNA_DA_CLASSIFICACAO);
 
-        // Validação para garantir que as colunas inseridas são letras válidas.
         if (isNaN(indiceIdOS) || isNaN(indiceClassificacao) || indiceIdOS < 0 || indiceClassificacao < 0) {
             alert("Configuração de colunas inválida! Por favor, use letras únicas como 'A', 'B', etc.");
             return;
@@ -114,7 +116,6 @@
 
             for (const linha of linhas.slice(1)) {
                 const colunas = linha.split(',');
-                // Garante que a linha do CSV tenha colunas suficientes para os dados que queremos.
                 if (colunas.length > indiceMaximo) {
                     const idOS = colunas[indiceIdOS].trim().replace(/"/g, '');
                     const classificacao = colunas[indiceClassificacao].trim().replace(/"/g, '');
@@ -157,7 +158,20 @@
             const idDaOS = ordemParaProcessar.querySelector('input.selecionado[id]').id;
             const classificacaoEscolhida = DADOS_DA_PLANILHA[idDaOS];
             
-            if (ordemParaProcessar.innerText.toLowerCase().includes(classificacaoEscolhida.toLowerCase())) {
+            // *** CORREÇÃO DA LÓGICA DE VERIFICAÇÃO PRÉVIA ***
+            // Este novo método extrai a classificação exata da página para uma comparação precisa.
+            let classificacaoAtual = null;
+            // A Expressão Regular procura por "Classificação de O.S." (ignorando case) seguido por ":"
+            // e captura todo o texto que vem depois.
+            const match = ordemParaProcessar.innerText.match(/Classificação de O\.S\.\s*:\s*(.*)/i);
+            
+            // Se encontrou uma classificação na página, a limpa para a comparação.
+            if (match && match[1]) {
+                classificacaoAtual = match[1].trim();
+            }
+
+            // Agora a comparação é exata (e ignora maiúsculas/minúsculas).
+            if (classificacaoAtual && classificacaoAtual.toLowerCase() === classificacaoEscolhida.toLowerCase()) {
                 console.warn(`%c[JÁ CORRETO] O.S. ID: ${idDaOS} já está classificada como "${classificacaoEscolhida}". Pulando...`, 'color: #3498db;');
                 osProcessadasNestaSessao.add(idDaOS);
                 await new Promise(resolve => setTimeout(resolve, 50));
@@ -206,7 +220,6 @@
                 console.log('   - Aguardando 2.5 segundos para estabilização...');
                 await new Promise(resolve => setTimeout(resolve, 2500));
 
-                // Usa a variável de configuração para o limite de janelas
                 if (janelasAbertasPeloScript.length >= MAXIMO_DE_JANELAS_ABERTAS) {
                     fecharTodasAsJanelas();
                     console.log('   - Pausa adicional de 2 segundos após a limpeza das janelas.');
