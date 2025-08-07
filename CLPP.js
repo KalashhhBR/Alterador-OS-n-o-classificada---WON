@@ -248,5 +248,5 @@
     }
 
     // Ponto de entrada: chama a função principal para iniciar todo o processo.
-    processarTodasAsCadens();
+    processarTodasAsOrdens();
 })();
