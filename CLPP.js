@@ -15,8 +15,8 @@
     /** (Config 1) Defina o número máximo de janelas que podem ser abertas antes da limpeza automática. */
     const MAXIMO_DE_JANELAS_ABERTAS = 5;
 
-    /** (Config 2) Qual coluna da sua planilha contém o ID da Ordem de Serviço? (Use a letra) */
-    const COLUNA_DO_ID_DA_OS = 'A';
+    /** (Config 2) Qual coluna da sua planilha contém o ID da Solicitação? (Use a letra) */
+    const COLUNA_DO_ID = 'A';
 
     /** (Config 3) Qual coluna da sua planilha contém o texto da Classificação? (Use a letra) */
     const COLUNA_DA_CLASSIFICACAO = 'B';
@@ -92,7 +92,7 @@
         }
 
         // Converte as letras das colunas para os índices numéricos que o script usará.
-        const indiceIdOS = letraParaIndice(COLUNA_DO_ID_DA_OS);
+        const indiceIdOS = letraParaIndice(COLUNA_DO_ID);
         const indiceClassificacao = letraParaIndice(COLUNA_DA_CLASSIFICACAO);
 
         // Validação para garantir que as colunas inseridas são letras válidas.
