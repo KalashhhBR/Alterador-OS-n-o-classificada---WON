@@ -185,7 +185,7 @@
                 // Espera pelo formulário carregar e o manipula.
                 const form = await waitForElement('form[action*="aceitarSolicitacao"]');
                 const windowName = 'os_submission_' + idDaOS;
-                const windowFeatures = 'width=800,height=600,scrollbars=yes,resizable=yes';
+                const windowFeatures = 'width=360,height=270,scrollbars=yes,resizable=yes';
                 const novaJanela = window.open('', windowName, windowFeatures);
                 if (novaJanela) novaJanela.blur(); // Truque para abrir a janela sem roubar o foco.
                 janelasAbertasPeloScript.push(novaJanela);
@@ -233,3 +233,4 @@
     processarTodasAsOrdens();
 
 })();
+
