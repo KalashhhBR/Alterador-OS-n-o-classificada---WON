@@ -187,7 +187,7 @@
 
                 const form = await waitForElement('form[action*="aceitarSolicitacao"]');
                 const windowName = 'os_submission_' + idDaOS;
-                const windowFeatures = 'width=800,height=600,scrollbars=yes,resizable=yes';
+                const windowFeatures = 'width=360,height=270,scrollbars=yes,resizable=yes';
                 const novaJanela = window.open('', windowName, windowFeatures);
                 if (novaJanela) novaJanela.blur();
                 janelasAbertasPeloScript.push(novaJanela);
