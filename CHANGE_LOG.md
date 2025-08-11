@@ -11,3 +11,9 @@ Log #2 - 07/08/25 ~ 12:45
 * Correção: Corrigido problema onde o script não alterada por "Corretiva" se ja estivesse classificado como "Corretiva planejada);
 
 **Fim #2**
+
+Log #3 - 11/08/25 ~ 10:43
+
+* Modificação: Alteração do tamanho da janela aberta ao salvar a solicitação (800x600 > 360x270).
+
+**Fim #3**
