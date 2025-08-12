@@ -205,8 +205,8 @@
 
                     $('.modal.in').modal('hide');
                     console.log(`   - O.S. ${idDaOS} processada com sucesso.`);
-                    console.log('   - Aguardando 2.5 segundos para estabilização...');
-                    await new Promise(resolve => setTimeout(resolve, 2500));
+                    console.log('   - Aguardando 2 segundos para estabilização...');
+                    await new Promise(resolve => setTimeout(resolve, 2000));
 
                     if (janelasAbertasPeloScript.length >= MAXIMO_DE_JANELAS_ABERTAS) {
                         fecharTodasAsJanelas();
