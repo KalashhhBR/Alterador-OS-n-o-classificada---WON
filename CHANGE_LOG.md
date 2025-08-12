@@ -17,3 +17,10 @@ Log #3 - 11/08/25 ~ 10:43
 * Modificação: Alteração do tamanho da janela aberta ao salvar a solicitação (800x600 > 360x270).
 
 **Fim #3**
+
+Log #4 - 12/08/25 ~ 12:43
+
+* Adição: Novas configurações (Dicionário alternativo) e capacidade de acessar páginas adicionais, caso existam.
+* Modificações: Configuração de verificação de tipos permitidos.
+
+**Fim #4**
