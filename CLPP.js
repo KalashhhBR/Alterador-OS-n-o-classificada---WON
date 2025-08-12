@@ -15,16 +15,10 @@
         'sla': 'Corretiva',
         'planejada': 'Corretiva Planejada'
     };
-    // A lista de permissões agora é criada em minúsculas para a verificação.
     const CLASSIFICACOES_PERMITIDAS = new Set([
-        'corretiva',
-        'corretiva planejada',
-        'atendimento',
-        'melhoria',
-        'acompanhamento'
+        'corretiva', 'corretiva planejada', 'atendimento',
+        'melhoria', 'acompanhamento'
     ]);
-    // ====================================================================================
-    // == FIM DA CONFIGURAÇÃO
     // ====================================================================================
 
     if (document.getElementById('botao-fechar-janelas')) {
@@ -63,7 +57,7 @@
             botao.innerHTML = `❌ Fechar Janelas Abertas (${janelasRealmenteAbertas})`;
         }
     }
-    
+
     function letraParaIndice(letraColuna) {
         return letraColuna.toUpperCase().charCodeAt(0) - 'A'.charCodeAt(0);
     }
@@ -90,7 +84,7 @@
         const indiceClassificacao = letraParaIndice(COLUNA_DA_CLASSIFICACAO);
 
         if (isNaN(indiceIdOS) || isNaN(indiceClassificacao) || indiceIdOS < 0 || indiceClassificacao < 0) {
-            alert("Configuração de colunas inválida! Por favor, use letras únicas como 'A', 'B', etc.");
+            alert("Configuração de colunas inválida! Use letras como 'A', 'B', etc.");
             return;
         }
 
@@ -100,11 +94,9 @@
             const response = await fetch(urlPlanilha);
             if (!response.ok) throw new Error(`Erro na rede: ${response.statusText}`);
             const csvText = await response.text();
-            
             console.log("Processando dados CSV...");
             const linhas = csvText.trim().split('\n');
             const indiceMaximo = Math.max(indiceIdOS, indiceClassificacao);
-
             for (const linha of linhas.slice(1)) {
                 const colunas = linha.split(',');
                 if (colunas.length > indiceMaximo) {
@@ -114,16 +106,15 @@
                 }
             }
             if (Object.keys(DADOS_DA_PLANILHA).length === 0) throw new Error("Nenhum dado válido foi processado.");
-            console.log(`%cSucesso! ${Object.keys(DADOS_DA_PLANILHA).length} mapeamentos de OS carregados.`, 'color: lightgreen;');
+            console.log(`%cSucesso! ${Object.keys(DADOS_DA_PLANILHA).length} mapeamentos carregados.`, 'color: lightgreen;');
         } catch (error) {
             alert("Falha ao baixar ou processar os dados da planilha.");
-            console.error("Erro ao obter dados da planilha:", error);
+            console.error(error);
             return;
         }
 
         console.log("🚀 INICIANDO AUTOMAÇÃO COM DADOS AO VIVO 🚀");
         criarBotaoDeFechamento();
-
         if (typeof $ === 'undefined' || typeof $.fn.modal === 'undefined') {
             console.error("ERRO CRÍTICO: jQuery ou Bootstrap Modal não encontrados.");
             return;
@@ -132,42 +123,50 @@
         const osProcessadasNestaSessao = new Set();
         let paginaAtual = 1;
         while (true) {
-             console.log(`%c--- Verificando Página ${paginaAtual} ---`, 'font-weight: bold; background-color: #f0f0f0; color: black;');
-            
+            console.log(`%c--- Verificando Página ${paginaAtual} ---`, 'font-weight: bold; background-color: #f0f0f0; color: black;');
             const todasAsOrdensNaPagina = Array.from(document.querySelectorAll('#solicitacoesPendentes .list-group-item.media'));
 
             for (const ordemParaProcessar of todasAsOrdensNaPagina) {
                 const idInput = ordemParaProcessar.querySelector('input.selecionado[id]');
+                // Pula se o elemento não tem ID ou se já foi totalmente resolvido nesta sessão.
                 if (!idInput || osProcessadasNestaSessao.has(idInput.id)) {
-                    continue; 
+                    continue;
                 }
 
                 const idDaOS = idInput.id;
-                osProcessadasNestaSessao.add(idDaOS); 
-
                 const classificacaoOriginal = DADOS_DA_PLANILHA[idDaOS];
+
+                // Se a O.S. da página não está na nossa planilha, ela é irrelevante.
+                // A marcamos como processada e pulamos.
                 if (!classificacaoOriginal) {
-                    continue; 
+                    osProcessadasNestaSessao.add(idDaOS);
+                    continue;
                 }
 
                 const classificacaoLimpa = classificacaoOriginal.toLowerCase().trim();
                 const classificacaoFinal = ALIASES_DE_CLASSIFICACAO[classificacaoLimpa] || classificacaoOriginal;
-                
-                // *** CORREÇÃO 1: VERIFICAÇÃO DE PERMISSÃO CASE-INSENSITIVE ***
+
+                // Se a classificação final não é permitida, a O.S. é irrelevante.
+                // A marcamos como processada e pulamos.
                 if (!CLASSIFICACOES_PERMITIDAS.has(classificacaoFinal.toLowerCase().trim())) {
-                    console.warn(`%c[NÃO PERMITIDO] A classificação "${classificacaoFinal}" para a OS ${idDaOS} não está na lista de permissões. Pulando...`, 'color: #e74c3c;');
+                    console.warn(`%c[NÃO PERMITIDO] A classificação "${classificacaoFinal}" para a OS ${idDaOS} não está na lista. Pulando...`, 'color: #e74c3c;');
+                    osProcessadasNestaSessao.add(idDaOS);
                     continue;
                 }
-                
+
                 let classificacaoAtual = null;
                 const match = ordemParaProcessar.innerText.match(/Classificação de O\.S\.\s*:\s*(.*)/i);
                 if (match && match[1]) { classificacaoAtual = match[1].trim(); }
 
+                // Se a O.S. já está com a classificação correta, não há nada a fazer.
+                // A marcamos como processada e pulamos.
                 if (classificacaoAtual && classificacaoAtual.toLowerCase() === classificacaoFinal.toLowerCase()) {
                     console.warn(`%c[JÁ CORRETO] O.S. ID: ${idDaOS} já está classificada como "${classificacaoFinal}". Pulando...`, 'color: #3498db;');
+                    osProcessadasNestaSessao.add(idDaOS);
                     continue;
                 }
-                
+
+                // Se passou por todas as verificações, é uma O.S. que precisa de ação.
                 console.log(`%c[AÇÃO NECESSÁRIA] O.S. ID: ${idDaOS} -> Mudar para: "${classificacaoFinal}"`, "color: orange; font-weight: bold;");
 
                 try {
@@ -177,7 +176,7 @@
 
                     const form = await waitForElement('form[action*="aceitarSolicitacao"]');
                     const windowName = 'os_submission_' + idDaOS;
-                    const windowFeatures = 'width=800,height=600,scrollbars=yes,resizable=yes';
+                    const windowFeatures = 'width=360,height=270,scrollbars=yes,resizable=yes';
                     const novaJanela = window.open('', windowName, windowFeatures);
                     if (novaJanela) novaJanela.blur();
                     janelasAbertasPeloScript.push(novaJanela);
@@ -195,6 +194,7 @@
                     } else {
                         console.error(`   - ERRO: A classificação "${classificacaoFinal}" não foi encontrada no formulário.`);
                         $('.modal.in').modal('hide');
+                        osProcessadasNestaSessao.add(idDaOS); // Marca como processada mesmo com erro para não tentar de novo.
                         continue;
                     }
 
@@ -204,24 +204,23 @@
                     await new Promise(resolve => setTimeout(resolve, 2000));
 
                     $('.modal.in').modal('hide');
-                    console.log(`   - O.S. ${idDaOS} processada com sucesso.`);
-                    console.log('   - Aguardando 2 segundos para estabilização...');
-                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    // Somente após uma ação bem-sucedida, garantimos que ela está na memória.
+                    osProcessadasNestaSessao.add(idDaOS);
+                    console.log(`   - O.S. ${idDaOS} processada e adicionada à memória.`);
+                    console.log('   - Aguardando 1.8 segundos para estabilização...');
+                    await new Promise(resolve => setTimeout(resolve, 1800));
 
                     if (janelasAbertasPeloScript.length >= MAXIMO_DE_JANELAS_ABERTAS) {
                         fecharTodasAsJanelas();
-                        console.log('   - Pausa adicional de 2 segundos após a limpeza.');
-                        await new Promise(resolve => setTimeout(resolve, 2000));
+                        console.log('   - Pausa adicional de 1.5 segundos após a limpeza.');
+                        await new Promise(resolve => setTimeout(resolve, 1500));
                     }
                 } catch (error) {
-                    // *** CORREÇÃO 2: TRATAMENTO DE ERRO MAIS RESILIENTE ***
                     console.error(`ERRO no processamento da OS ${idDaOS}:`, error);
-                    console.log(`%c   - A O.S. ${idDaOS} falhou, mas o script continuará para a próxima.`, 'color: red;');
-                    // Tenta fechar o modal se ele ficou aberto
-                    if ($('.modal.in').length > 0) {
-                        $('.modal.in').modal('hide');
-                    }
-                    continue; // Pula para a próxima O.S. em vez de parar tudo.
+                    console.log(`%c   - A O.S. ${idDaOS} falhou, mas o script continuará.`, 'color: red;');
+                    if ($('.modal.in').length > 0) { $('.modal.in').modal('hide'); }
+                    osProcessadasNestaSessao.add(idDaOS); // Adiciona na memória para não tentar de novo com uma O.S. quebrada.
+                    continue;
                 }
             }
 
