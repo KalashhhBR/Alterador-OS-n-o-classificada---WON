@@ -1,6 +1,10 @@
 # 🤖 Automação de Tarefas com Scripts de Console
 
-Este repositório contém uma coleção de scripts JavaScript projetados para serem executados no console do navegador, automatizando tarefas repetitivas em sistemas web específicos. Cada script foi desenvolvido para um fluxo de trabalho particular, lendo dados de planilhas e interagindo com formulários e listas de forma inteligente.
+Este repositório contém uma coleção de scripts JavaScript projetados para serem executados no console do navegador, automatizando tarefas repetitivas no Won. Cada script foi desenvolvido para um fluxo de trabalho particular, lendo dados de planilhas e interagindo com formulários e listas de forma inteligente.
+
+## ⚠️ Aviso
+
+> Em caso de dúvidas ou personalizações, entre em contato com o desenvolvedor; Cauã de Souza Vieira - INNOVA
 
 ## 🗂️ Scripts Disponíveis
 
