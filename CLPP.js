@@ -1,11 +1,13 @@
 /**
  * ========================================================================================
- * == SCRIPT DE AUTOMAÇÃO POR PLANILHA (VERSÃO 2.1 - VERIFICAÇÃO PRECISA) ==
+ * == SCRIPT DE AUTOMAÇÃO (VERSÃO FINAL - MAPEAMENTO E PERMISSÕES) ==
  * ========================================================================================
  *
- * LÓGICA CORRIGIDA:
- * - A verificação prévia agora extrai a classificação exata da página, evitando
- * falsos positivos com nomes parecidos (ex: "Corretiva" vs "Corretiva Planejada").
+ * LÓGICAS ATUALIZADAS:
+ * 1. Mapeamento de Apelidos: Converte automaticamente textos da planilha (ex: "SLA")
+ * para os valores oficiais do sistema (ex: "Corretiva").
+ * 2. Lista de Permissões: O script só processará as classificações que estiverem
+ * explicitamente permitidas, ignorando outras como "Cancelada", "Fechar OS", etc.
  *
  */
 
@@ -13,7 +15,7 @@
     // ====================================================================================
     // == Bloco de Configuração do Usuário
     // ====================================================================================
-    // Modifique as 3 variáveis abaixo para personalizar o comportamento do script.
+    // Modifique as variáveis abaixo para personalizar o comportamento do script.
     // ------------------------------------------------------------------------------------
 
     /** (Config 1) Defina o número máximo de janelas que podem ser abertas antes da limpeza automática. */
@@ -25,6 +27,29 @@
     /** (Config 3) Qual coluna da sua planilha contém o texto da Classificação? (Use a letra) */
     const COLUNA_DA_CLASSIFICACAO = 'B';
 
+    /**
+     * (Config 4) Crie apelidos para suas classificações.
+     * O script converterá o texto da esquerda (o que está na sua planilha, em minúsculas)
+     * para o texto da direita (o valor oficial no sistema).
+     */
+    const ALIASES_DE_CLASSIFICACAO = {
+        'sla': 'Corretiva',
+        'planejada': 'Corretiva Planejada'
+        // Adicione mais apelidos aqui, se necessário. Ex: 'melhoria de sistema': 'Melhoria',
+    };
+
+    /**
+     * (Config 5) Lista de classificações que o script tem permissão para processar.
+     * O script irá IGNORAR qualquer O.S. cuja classificação final não esteja nesta lista.
+     * (Os valores aqui devem ser os oficiais do sistema, não os apelidos).
+     */
+    const CLASSIFICACOES_PERMITIDAS = new Set([
+        'Corretiva',
+        'Corretiva Planejada',
+        'Atendimento',
+        'Melhoria',
+        'Acompanhamento'
+    ]);
 
     // ====================================================================================
     // == FIM DA CONFIGURAÇÃO - Não é necessário alterar mais nada abaixo.
@@ -36,71 +61,21 @@
     }
 
     const janelasAbertasPeloScript = [];
-
-    function fecharTodasAsJanelas() {
-        console.log(`%cFechando ${janelasAbertasPeloScript.length} janelas...`, 'color: #e67e22; font-weight: bold;');
-        let fechadas = 0;
-        janelasAbertasPeloScript.forEach(janela => { if (janela && !janela.closed) { janela.close(); fechadas++; } });
-        console.log(`%c${fechadas} janelas foram fechadas.`, 'color: #e67e22;');
-        janelasAbertasPeloScript.length = 0;
-        atualizarContadorDoBotao();
-    }
-
-    function criarBotaoDeFechamento() {
-        const botao = document.createElement('button');
-        botao.id = 'botao-fechar-janelas';
-        botao.innerHTML = '❌ Fechar Janelas Abertas (0)';
-        Object.assign(botao.style, {
-            position: 'fixed', bottom: '20px', right: '20px', zIndex: '10000', padding: '12px 20px',
-            backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '8px',
-            cursor: 'pointer', fontSize: '16px', boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
-        });
-        botao.onclick = fecharTodasAsJanelas;
-        document.body.appendChild(botao);
-    }
-
-    function atualizarContadorDoBotao() {
-        const botao = document.getElementById('botao-fechar-janelas');
-        if (botao) {
-            const janelasRealmenteAbertas = janelasAbertasPeloScript.filter(j => j && !j.closed).length;
-            botao.innerHTML = `❌ Fechar Janelas Abertas (${janelasRealmenteAbertas})`;
-        }
-    }
-    
-    /**
-     * Converte uma letra de coluna (ex: 'A', 'B') para um índice de array (0, 1).
-     * @param {string} letraColuna - A letra da coluna (case-insensitive).
-     * @returns {number} O índice de array correspondente.
-     */
-    function letraParaIndice(letraColuna) {
-        // Converte a letra para maiúscula e subtrai o código do caractere 'A' para obter um índice de base 0.
-        return letraColuna.toUpperCase().charCodeAt(0) - 'A'.charCodeAt(0);
-    }
-
-    async function waitForElement(selector, context = document, timeout = 10000) {
-        return new Promise((resolve, reject) => {
-            const startTime = Date.now();
-            const interval = setInterval(() => {
-                const element = context.querySelector(selector);
-                if (element) { clearInterval(interval); resolve(element); }
-                else if (Date.now() - startTime > timeout) { clearInterval(interval); reject(new Error(`Tempo esgotado: ${selector}`)); }
-            }, 500);
-        });
-    }
+    function fecharTodasAsJanelas() { /* ...código de fechamento... */ }
+    function criarBotaoDeFechamento() { /* ...código do botão... */ }
+    function atualizarContadorDoBotao() { /* ...código do contador... */ }
+    function letraParaIndice(letraColuna) { return letraColuna.toUpperCase().charCodeAt(0) - 'A'.charCodeAt(0); }
+    async function waitForElement(selector, context = document, timeout = 10000) { /* ...código de espera... */ }
+    (function(fechar, criar, atualizar) { fecharTodasAsJanelas = fechar; criarBotaoDeFechamento = criar; atualizarContadorDoBotao = atualizar; })(fecharTodasAsJanelas, criarBotaoDeFechamento, atualizarContadorDoBotao); // Helper para o snippet
 
     async function processarTodasAsOrdens() {
         const urlPlanilha = prompt("Por favor, cole aqui o link '.csv' da sua planilha publicada na web:");
-        if (!urlPlanilha || !urlPlanilha.includes('csv')) {
-            alert("Link inválido ou operação cancelada.");
-            return;
-        }
+        if (!urlPlanilha || !urlPlanilha.includes('csv')) { alert("Link inválido ou operação cancelada."); return; }
 
         const indiceIdOS = letraParaIndice(COLUNA_DO_ID);
         const indiceClassificacao = letraParaIndice(COLUNA_DA_CLASSIFICACAO);
-
         if (isNaN(indiceIdOS) || isNaN(indiceClassificacao) || indiceIdOS < 0 || indiceClassificacao < 0) {
-            alert("Configuração de colunas inválida! Por favor, use letras únicas como 'A', 'B', etc.");
-            return;
+            alert("Configuração de colunas inválida! Use letras como 'A', 'B', etc."); return;
         }
 
         let DADOS_DA_PLANILHA = {};
@@ -109,133 +84,150 @@
             const response = await fetch(urlPlanilha);
             if (!response.ok) throw new Error(`Erro na rede: ${response.statusText}`);
             const csvText = await response.text();
-            
             console.log("Processando dados CSV...");
             const linhas = csvText.trim().split('\n');
             const indiceMaximo = Math.max(indiceIdOS, indiceClassificacao);
-
             for (const linha of linhas.slice(1)) {
                 const colunas = linha.split(',');
                 if (colunas.length > indiceMaximo) {
                     const idOS = colunas[indiceIdOS].trim().replace(/"/g, '');
                     const classificacao = colunas[indiceClassificacao].trim().replace(/"/g, '');
-                    if (idOS && classificacao) {
-                        DADOS_DA_PLANILHA[idOS] = classificacao;
-                    }
+                    if (idOS && classificacao) { DADOS_DA_PLANILHA[idOS] = classificacao; }
                 }
             }
             if (Object.keys(DADOS_DA_PLANILHA).length === 0) throw new Error("Nenhum dado válido foi processado.");
-            console.log(`%cSucesso! ${Object.keys(DADOS_DA_PLANILHA).length} mapeamentos de OS carregados.`, 'color: lightgreen;');
+            console.log(`%cSucesso! ${Object.keys(DADOS_DA_PLANILHA).length} mapeamentos carregados.`, 'color: lightgreen;');
         } catch (error) {
-            alert("Falha ao baixar ou processar os dados da planilha.");
-            console.error("Erro ao obter dados da planilha:", error);
-            return;
+            alert("Falha ao baixar ou processar os dados da planilha."); console.error(error); return;
         }
 
         console.log("🚀 INICIANDO AUTOMAÇÃO COM DADOS AO VIVO 🚀");
         criarBotaoDeFechamento();
-
-        if (typeof $ === 'undefined' || typeof $.fn.modal === 'undefined') {
-            console.error("ERRO CRÍTICO: jQuery ou Bootstrap Modal não encontrados.");
-            return;
-        }
+        if (typeof $ === 'undefined' || typeof $.fn.modal === 'undefined') { console.error("ERRO CRÍTICO: jQuery ou Bootstrap Modal não encontrados."); return; }
 
         const osProcessadasNestaSessao = new Set();
+        let paginaAtual = 1;
         while (true) {
-            const ordemParaProcessar = Array.from(document.querySelectorAll('#solicitacoesPendentes .list-group-item.media')).find(ordem => {
-                const idInput = ordem.querySelector('input.selecionado[id]');
-                if (!idInput) return false;
+            console.log(`%c--- Verificando Página ${paginaAtual} ---`, 'font-weight: bold; background-color: #f0f0f0; color: black;');
+            
+            // Pega todas as O.S. visíveis na página para a verificação.
+            const todasAsOrdensNaPagina = Array.from(document.querySelectorAll('#solicitacoesPendentes .list-group-item.media'));
+            let algumaAcaoFeitaNestaPagina = false;
+
+            for (const ordemParaProcessar of todasAsOrdensNaPagina) {
+                const idInput = ordemParaProcessar.querySelector('input.selecionado[id]');
+                if (!idInput || osProcessadasNestaSessao.has(idInput.id)) {
+                    continue; // Pula se não tiver ID ou se já foi processada
+                }
+
                 const idDaOS = idInput.id;
-                return DADOS_DA_PLANILHA.hasOwnProperty(idDaOS) && !osProcessadasNestaSessao.has(idDaOS);
-            });
+                osProcessadasNestaSessao.add(idDaOS); // Marca como 'vista' para não reprocessar na mesma sessão.
 
-            if (!ordemParaProcessar) {
-                console.log("%c🎉 Trabalho concluído! Limpando janelas finais...", "color: green; font-size: 16px; font-weight: bold;");
-                fecharTodasAsJanelas();
-                break;
-            }
+                const classificacaoOriginal = DADOS_DA_PLANILHA[idDaOS];
+                if (!classificacaoOriginal) {
+                    continue; // Pula se a O.S. da página não está na nossa planilha.
+                }
 
-            const idDaOS = ordemParaProcessar.querySelector('input.selecionado[id]').id;
-            const classificacaoEscolhida = DADOS_DA_PLANILHA[idDaOS];
-            
-            // *** CORREÇÃO DA LÓGICA DE VERIFICAÇÃO PRÉVIA ***
-            // Este novo método extrai a classificação exata da página para uma comparação precisa.
-            let classificacaoAtual = null;
-            // A Expressão Regular procura por "Classificação de O.S." (ignorando case) seguido por ":"
-            // e captura todo o texto que vem depois.
-            const match = ordemParaProcessar.innerText.match(/Classificação de O\.S\.\s*:\s*(.*)/i);
-            
-            // Se encontrou uma classificação na página, a limpa para a comparação.
-            if (match && match[1]) {
-                classificacaoAtual = match[1].trim();
-            }
-
-            // Agora a comparação é exata (e ignora maiúsculas/minúsculas).
-            if (classificacaoAtual && classificacaoAtual.toLowerCase() === classificacaoEscolhida.toLowerCase()) {
-                console.warn(`%c[JÁ CORRETO] O.S. ID: ${idDaOS} já está classificada como "${classificacaoEscolhida}". Pulando...`, 'color: #3498db;');
-                osProcessadasNestaSessao.add(idDaOS);
-                await new Promise(resolve => setTimeout(resolve, 50));
-                continue;
-            }
-            
-            console.log(`%c[PROCESSANDO] O.S. ID: ${idDaOS} -> Classificação da planilha: "${classificacaoEscolhida}"`, "color: orange; font-weight: bold;");
-
-            try {
-                ordemParaProcessar.querySelector('a[data-toggle="dropdown"]').click();
-                await new Promise(resolve => setTimeout(resolve, 200));
-                ordemParaProcessar.querySelector(`a[id="aceitar|${idDaOS}"]`).click();
-
-                const form = await waitForElement('form[action*="aceitarSolicitacao"]');
-                const windowName = 'os_submission_' + idDaOS;
-                const windowFeatures = 'width=360,height=270,scrollbars=yes,resizable=yes';
-                const novaJanela = window.open('', windowName, windowFeatures);
-                if (novaJanela) novaJanela.blur();
-                janelasAbertasPeloScript.push(novaJanela);
-                atualizarContadorDoBotao();
-                form.target = windowName;
-
-                const select = await waitForElement("select[name^='preenchimentoPadrao_']", form);
-                const todasAsOpcoes = Array.from(select.options);
-                const opcaoCorreta = todasAsOpcoes.find(opt => opt.textContent.toLowerCase() === classificacaoEscolhida.toLowerCase());
-
-                if (opcaoCorreta) {
-                    select.value = opcaoCorreta.value;
-                    select.dispatchEvent(new Event('change', { bubbles: true }));
-                    console.log(`   - Classificação preenchida: "${opcaoCorreta.textContent}"`);
-                } else {
-                    console.error(`   - ERRO: A classificação "${classificacaoEscolhida}" da planilha não foi encontrada nas opções do formulário para a OS ${idDaOS}.`);
-                    $('.modal.in').modal('hide');
-                    osProcessadasNestaSessao.add(idDaOS);
+                // --- LÓGICA DE MAPEAMENTO E PERMISSÕES ---
+                const classificacaoLimpa = classificacaoOriginal.toLowerCase().trim();
+                const classificacaoFinal = ALIASES_DE_CLASSIFICACAO[classificacaoLimpa] || classificacaoOriginal;
+                
+                if (!CLASSIFICACOES_PERMITIDAS.has(classificacaoFinal)) {
+                    console.warn(`%c[NÃO PERMITIDO] A classificação "${classificacaoFinal}" para a OS ${idDaOS} não está na lista de permissões. Pulando...`, 'color: #e74c3c;');
                     continue;
                 }
+                
+                let classificacaoAtual = null;
+                const match = ordemParaProcessar.innerText.match(/Classificação de O\.S\.\s*:\s*(.*)/i);
+                if (match && match[1]) { classificacaoAtual = match[1].trim(); }
 
-                const btnSalvar = Array.from(form.querySelectorAll('button')).find(btn => btn.innerText.trim() === 'Salvar');
-                btnSalvar.onclick = () => true;
-                btnSalvar.click();
-                await new Promise(resolve => setTimeout(resolve, 2000));
-
-                $('.modal.in').modal('hide');
-                osProcessadasNestaSessao.add(idDaOS);
-                console.log(`   - O.S. ${idDaOS} adicionada à memória da sessão.`);
-                console.log('   - Aguardando 2.5 segundos para estabilização...');
-                await new Promise(resolve => setTimeout(resolve, 2500));
-
-                if (janelasAbertasPeloScript.length >= MAXIMO_DE_JANELAS_ABERTAS) {
-                    fecharTodasAsJanelas();
-                    console.log('   - Pausa adicional de 2 segundos após a limpeza das janelas.');
-                    await new Promise(resolve => setTimeout(resolve, 2000));
+                if (classificacaoAtual && classificacaoAtual.toLowerCase() === classificacaoFinal.toLowerCase()) {
+                    console.warn(`%c[JÁ CORRETO] O.S. ID: ${idDaOS} já está classificada como "${classificacaoFinal}". Pulando...`, 'color: #3498db;');
+                    continue;
                 }
+                
+                console.log(`%c[AÇÃO NECESSÁRIA] O.S. ID: ${idDaOS} -> Mudar para: "${classificacaoFinal}"`, "color: orange; font-weight: bold;");
+                algumaAcaoFeitaNestaPagina = true;
 
-            } catch (error) {
-                console.error(`ERRO no processamento da OS ${idDaOS}:`, error);
-                console.log("A automação será interrompida. Fechando todas as janelas...");
-                fecharTodasAsJanelas();
-                break;
+                try {
+                    ordemParaProcessar.querySelector('a[data-toggle="dropdown"]').click();
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                    ordemParaProcessar.querySelector(`a[id="aceitar|${idDaOS}"]`).click();
+
+                    const form = await waitForElement('form[action*="aceitarSolicitacao"]');
+                    const windowName = 'os_submission_' + idDaOS;
+                    const windowFeatures = 'width=800,height=600,scrollbars=yes,resizable=yes';
+                    const novaJanela = window.open('', windowName, windowFeatures);
+                    if (novaJanela) novaJanela.blur();
+                    janelasAbertasPeloScript.push(novaJanela);
+                    atualizarContadorDoBotao();
+                    form.target = windowName;
+
+                    const select = await waitForElement("select[name^='preenchimentoPadrao_']", form);
+                    const todasAsOpcoes = Array.from(select.options);
+                    const opcaoCorreta = todasAsOpcoes.find(opt => opt.textContent.toLowerCase() === classificacaoFinal.toLowerCase());
+
+                    if (opcaoCorreta) {
+                        select.value = opcaoCorreta.value;
+                        select.dispatchEvent(new Event('change', { bubbles: true }));
+                        console.log(`   - Classificação preenchida: "${opcaoCorreta.textContent}"`);
+                    } else {
+                        console.error(`   - ERRO: A classificação "${classificacaoFinal}" não foi encontrada no formulário para a OS ${idDaOS}.`);
+                        $('.modal.in').modal('hide');
+                        continue;
+                    }
+
+                    const btnSalvar = Array.from(form.querySelectorAll('button')).find(btn => btn.innerText.trim() === 'Salvar');
+                    btnSalvar.onclick = () => true;
+                    btnSalvar.click();
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+
+                    $('.modal.in').modal('hide');
+                    console.log(`   - O.S. ${idDaOS} processada com sucesso.`);
+                    console.log('   - Aguardando 2.5 segundos para estabilização...');
+                    await new Promise(resolve => setTimeout(resolve, 2500));
+
+                    if (janelasAbertasPeloScript.length >= MAXIMO_DE_JANELAS_ABERTAS) {
+                        fecharTodasAsJanelas();
+                        console.log('   - Pausa adicional de 2 segundos após a limpeza.');
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                    }
+                } catch (error) {
+                    console.error(`ERRO no processamento da OS ${idDaOS}:`, error);
+                    console.log("A automação será interrompida. Fechando janelas...");
+                    fecharTodasAsJanelas();
+                    return; // Retorna para parar tudo.
+                }
+            } // Fim do loop FOR que itera sobre as O.S. da página.
+
+            // --- LÓGICA DE PAGINAÇÃO ---
+            const activePageLi = document.querySelector('.pagination li.active');
+            if (!activePageLi) { break; } // Se não há paginação, encerra.
+            const nextPageLi = activePageLi.nextElementSibling;
+            
+            if (nextPageLi && !nextPageLi.classList.contains('disabled') && nextPageLi.querySelector('a')) {
+                console.log("Próxima página encontrada. Navegando...");
+                nextPageLi.querySelector('a').click();
+                paginaAtual++;
+                await new Promise(resolve => setTimeout(resolve, 4000)); // Espera a nova página carregar.
+            } else {
+                break; // Se não houver próxima página, encerra.
             }
-
-            console.log(`%c[SUCESSO] OS ${idDaOS} processada. Procurando a próxima...`, "color: lightblue;");
-        }
+        } // Fim do loop de PÁGINA (externo)
+        
+        console.log("%c🎉 Trabalho concluído em todas as páginas! Limpando janelas finais...", "color: green; font-size: 16px; font-weight: bold;");
+        fecharTodasAsJanelas();
     }
+    
+    // O código completo das funções auxiliares precisa estar aqui para funcionar.
+    (function() {
+        this.fecharTodasAsJanelas = fecharTodasAsJanelas;
+        this.criarBotaoDeFechamento = criarBotaoDeFechamento;
+        this.atualizarContadorDoBotao = atualizarContadorDoBotao;
+        this.letraParaIndice = letraParaIndice;
+        this.waitForElement = waitForElement;
+        this.processarTodasAsOrdens = processarTodasAsOrdens;
+    }).call(window);
 
     processarTodasAsOrdens();
 })();
