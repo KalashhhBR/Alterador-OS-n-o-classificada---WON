@@ -27,7 +27,7 @@ A utilização de todos os scripts segue um processo semelhante:
 
 ### 📦 CLUN (Classificação Única)
 
-  - **Projeto Arquivado:** Este foi o primeiro script desenvolvido.
+  - **Projeto Arquivado:** Este foi o primeiro script desenvolvido (Estável para uso).
   - **Função:** Automatiza a classificação de Ordens de Serviço (O.S.) que ainda não possuem uma classificação. Ele foi projetado para aplicar uma **única classificação pré-definida** (ex: "Corretiva Planejada") em todas as O.S. elegíveis.
   - **Uso:** Ideal para tarefas de classificação em massa onde o valor a ser inserido é sempre o mesmo.
 
